@@ -64,11 +64,6 @@ inline void log_impl(const char *time, const char *file, int line, const char *f
 		} \
 	} while(0);
 
-#include <format>
-template<class... Args>
-std::string fmt(std::format_string<Args...> s, Args&&... args) {
-    return std::format(s, std::forward<Args>(args)...);
-}
 #elif LOGGING_ON // ifdef __cplusplus (if using c, not c++ and logging is on)
 	#define LOG(x) do { \
 		time_t rawtime; \
@@ -85,6 +80,37 @@ std::string fmt(std::format_string<Args...> s, Args&&... args) {
 #define LOG(X)
 
 #endif // ifdef __cplusplus
+//
+
+#if __cplusplus >= 202002L
+
+#include <format>
+template<class... Args>
+std::string fmt(std::format_string<Args...> s, Args&&... args) {
+    return std::format(s, std::forward<Args>(args)...);
+}
+
+#define MAKE_FORMATTER(T, FUN) \
+template<> \
+struct std::formatter<T> : std::formatter<std::string> { \
+	auto format(const T &type, std::format_context &ctx) const { \
+		std::string str; \
+		FUN \
+		return std::formatter<std::string>::format(std::format("{}", str), ctx); \
+	} \
+};
+
+#define MAKE_FORMATTER_T(T, FUN, ...) \
+template<__VA_ARGS__> \
+struct std::formatter<T> : std::formatter<std::string> { \
+	auto format(const T &type, std::format_context &ctx) const { \
+		std::string str; \
+		FUN \
+		return std::formatter<std::string>::format(std::format("{}", str), ctx); \
+	} \
+};
+
+#endif
 
 } // namespace redbrouk::utils
 
