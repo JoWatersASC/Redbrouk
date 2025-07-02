@@ -2,7 +2,7 @@
 #define REDBROUK_KVOBJ_H
 
 #include "src/hash.h"
-#include "src/map.h"
+#include "src/kvt_map.h"
 #include "src/kvt_tset.h"
 #include "src/utils.h"
 

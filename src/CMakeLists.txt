@@ -6,11 +6,11 @@ set(SRC_FILES
 	"io.cpp"
 
 	"hash.cpp"
-	"map.cpp"
 	"sbtree.cpp"
-	"tset.cpp"
 
 	"kvobj.cpp"
+	"kvt_map.cpp"
+	"kvt_tset.cpp"
 )
 set(HEADER_FILES
 	"network.h"
@@ -19,11 +19,11 @@ set(HEADER_FILES
 	"utils.h"
 
 	"hash.h"
-	"map.h"
 	"sbtree.h"
-	"tset.h"
 
 	"kvobj.h"
+	"kvt_map.h"
+	"kvt_tset.h"
 )
 
 option(BUILD_SHARED ON)

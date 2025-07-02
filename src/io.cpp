@@ -7,11 +7,11 @@
 #include "src/kvobj.h"
 #include "src/sbtree.h"
 #include "src/utils.h"
-#include "src/tset.h"
+#include "src/kvt_tset.h"
 #include "src/io.h"
 #include "src/connection.h"
 #include "src/network.h"
-#include "src/map.h"
+#include "src/kvt_map.h"
 #include "src/hash.h"
 
 namespace redbrouk
