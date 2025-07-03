@@ -1,4 +1,8 @@
 #include "kvobj.h"
+#include "kvt_map.h"
+#include "kvt_string.h"
+#include "kvt_tset.h"
+#include <memory>
 
 namespace redbrouk
 {
@@ -6,13 +10,13 @@ namespace redbrouk
 KVObj::KVObj(KVTYPE _type) : type(_type) {
 	switch(_type) {
 		case KVTYPE::STRING:
-			val.emplace<std::string>();
+			val = std::make_unique<String>();
 			break;
 		case KVTYPE::HASH:
-			val.emplace<iHMap>();
+			val = std::make_unique<iHMap>();
 			break;
 		case KVTYPE::TSET:
-			val.emplace<TSet>();
+			val = std::make_unique<TSet>();
 			break;
 		default:
 			break;
