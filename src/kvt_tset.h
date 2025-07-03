@@ -3,8 +3,7 @@
 
 #include <string>
 
-#include "sbtree.h"
-#include "hash.h"
+#include "kvobj.h"
 
 namespace redbrouk
 {
@@ -14,12 +13,13 @@ namespace redbrouk
  * Needs constructor due to std::string usage, will change in future
 */
 typedef struct tst_node {
-	struct ih_node mpnode;
+	iHNode mpnode;
 	RBTNode tnode;
 	std::string name;
 } TSTNode;
 
-typedef struct tset {
+typedef struct tset : Valtype {
+	using IKVValtype::IKVValtype;
 	RBTNode *stm_root = nullptr;
 	iHSet mts_mp;
 } TSet;

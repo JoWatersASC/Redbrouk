@@ -6,7 +6,12 @@
 
 namespace redbrouk {
 
-class String : Valtype, public std::string {};
+class String : public Valtype, public std::string {
+public:
+	using std::string::string;
+	String(const std::string &s) : std::string(s) {}
+	String(std::string &&s) : std::string(std::move(s)) {}
+};
 
 } // namespace redbrouk
 

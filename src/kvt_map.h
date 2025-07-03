@@ -4,16 +4,16 @@
 #include <string>
 #include <stack>
 
-#include "hash.h"
-#include "utils.h"
+#include "kvobj.h"
 
 using std::string;
 
 namespace redbrouk
 {
 
-class alignas(64) iHMap {
+class alignas(64) iHMap : public Valtype {
 public:
+	using IKVValtype::IKVValtype;
 	struct ih_set table;
 };
 
