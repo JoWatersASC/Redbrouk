@@ -6,8 +6,8 @@
 #include <random>
 
 #include "hash.h"
-#include "map.h"
-#include "tset.h"
+#include "kvt_map.h"
+#include "kvt_tset.h"
 #include "sbtree.h"
 #include "utils.h"
 

@@ -2,10 +2,7 @@
 #include <print>
 
 #include "sbtree.h"
-<<<<<<< HEAD
-#include "tset.h"
-=======
->>>>>>> rbt_delete
+#include "kvt_tset.h"
 
 using namespace redbrouk;
 
