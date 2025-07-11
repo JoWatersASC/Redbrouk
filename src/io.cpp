@@ -3,7 +3,7 @@
 #include <signal.h>
 #include <string>
 
-#include "src/connection.h"
+#include "src/kvobj.h"
 #include "src/network.h"
 
 #include "src/io.h"
@@ -185,25 +185,24 @@ static struct {
 
 inline KVObj *emplace_kvobj(std::string_view _key, KVTYPE _type) {
 	KVObj *obj = new (&db.data[db.data_idx++]) KVObj(_type);
-	obj->get_key() = _key;
-	obj->rehash_hook();
-	ihs_insert(&db.kvs.table, &obj->hook);
+	obj->set_key(std::string(_key));
+	ihs_insert(&db.kvs.table, obj->hook());
 	return obj;
 }
 
 namespace {
 	bool lookup_eq(const iHNode *a, const iHNode *b) {
-		KVObj *obj           = utils::container_of((iHNode *)a, &KVObj::hook);
+		KVObj &obj           = get_kvobj_v((iHNode *)a);
 		LookupDummy *lookup  = utils::container_of((iHNode *)b, &LookupDummy::hook);
 	
-		return obj->get_key() == lookup->key;
+		return obj.get_key() == lookup->key;
 	}
 }
 
 //---------------------------------------------------------------------------------------
 // String val type functions
 //---------------------------------------------------------------------------------------
-void get_val(vector<string> &cmds, Response &out) { // get command from cmds vector
+void val(vector<string> &cmds, Response &out) { // get command from cmds vector
 	LookupDummy dummy{
 		.hook = { nullptr, genHash((const byte *)cmds[1].data(), cmds[1].length()) },
 		.key  = cmds[1]
@@ -217,13 +216,13 @@ void get_val(vector<string> &cmds, Response &out) { // get command from cmds vec
 	}
 
 	std::string res;
-	KVObj *container = utils::container_of(node, &KVObj::hook);
+	KVObj &container = get_kvobj_v(node);
 
-	if(container->type != KVTYPE::STRING) {
+	if(container.type() != KVTYPE::STRING) {
 		res = "[ERROR: TYPE_MM] Was expecting STRING type";
 		out.data.assign(res.begin(), res.end());
 	} else {
-		res = "[GET] Key: " + std::move(cmds[1]) + " Val: " + (String&)container->get_val();
+		res = "[GET] Key: " + std::move(cmds[1]) + " Val: " + (String&)container.val();
 	}
 
 	out.data.assign(res.begin(), res.end());
@@ -242,14 +241,14 @@ void set_val(vector<string> &cmds, Response &out) {
 		entry = emplace_kvobj(dummy.key, KVTYPE::STRING);
 		entry->make_val<KVTYPE::STRING>(std::move(cmds[2]));
 	}
-	else if(get_kvobj(_hook)->type != KVTYPE::STRING) {
+	else if(get_kvobj_v(_hook).type() != KVTYPE::STRING) {
 		res = "[ERROR: TYPE_MM] Was expecting STRING type";
 		out.data.assign(res.begin(), res.end());
 		out.status = RES_ERR;
 		return;
 	}
 
-	res = "[SET] Key: " + entry->get_key() + " Val: " + (String&)entry->get_val();
+	res = "[SET] Key: " + entry->get_key() + " Val: " + (String&)entry->val();
 
 	out.data.assign(res.begin(), res.end());
 	out.status = RES_OK;
@@ -269,13 +268,13 @@ void del_val(vector<string> &cmds, Response &out) {
 	ihs_del(&db.kvs.table, &dummy.hook, lookup_eq);
 
 	std::string res;
-	KVObj *container = utils::container_of(del_node, &KVObj::hook);
+	KVObj &container = get_kvobj_v(del_node);
 
-	if(container->type != KVTYPE::STRING) {
+	if(container.type() != KVTYPE::STRING) {
 		res = "[ERROR: TYPE_MM] Was expecting STRING type";
 		out.status = RES_ERR;
 	} else {
-		res = "[DEL] Key: " + container->get_key() + "Value: " + (String&)container->get_val();
+		res = "[DEL] Key: " + container.get_key() + "Value: " + (String&)container.val();
 	}
 
 	out.data.assign(res.begin(), res.end());
@@ -299,11 +298,11 @@ TSet *find_tset(std::string_view key) {
 	if(!_hook)
 		return (TSet *)&NILTSET;
 	
-	KVObj *container = utils::container_of(_hook, &KVObj::hook);
-	if(container->type != KVTYPE::TSET)
+	KVObj &container = get_kvobj_v(_hook);
+	if(container.type() != KVTYPE::TSET)
 		return nullptr;
 
-	return std::addressof((TSet&)container->get_val());
+	return std::addressof((TSet&)container.val());
 }
 void do_range_tset(vector<string> &cmds, Response &out) {
 	std::string res = "[ERROR: TYPE_MM] Was expecting TSET type";
@@ -354,7 +353,7 @@ void do_add_tset(vector<string> &cmds, Response &out) {
 		return;
 	}
 	if(tset == &NILTSET) { // No kv object with this key found, create new object of type tset w/ this key
-		tset = (TSet*)emplace_kvobj(cmds[1], KVTYPE::TSET)->get_val_p();
+		tset = (TSet*)emplace_kvobj(cmds[1], KVTYPE::TSET)->val_p();
 	}
 
 	double _score;
@@ -381,7 +380,7 @@ static void do_request(std::vector<std::string> &cmd, Response &out) {
 	const size_t cmd_len = cmd.size();
 
     if (cmd_len == 2 && cmd[0] == "get") {
-		get_val(cmd, out);
+		val(cmd, out);
 		if(out.status == RES_NX)
 			return;
 

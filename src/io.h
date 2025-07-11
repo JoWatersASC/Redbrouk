@@ -1,7 +1,7 @@
 #ifndef REDBROUK_IO_H
 #define REDBROUK_IO_H
 
-#include <functional>
+#include <vector>
 #include <string>
 #include <cstdlib>
 #include <cstdint>

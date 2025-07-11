@@ -3,7 +3,6 @@
 
 #include "src/hash.h"
 #include "src/utils.h"
-#include "src/sbtree.h"
 
 #include <memory>
 #include <string>
@@ -16,6 +15,8 @@ class IKVValtype {
 public:
 	IKVValtype() = default;
 	virtual ~IKVValtype() = default;
+
+	static IKVValtype NIL;
 };
 using Valtype = IKVValtype;
 
@@ -28,47 +29,64 @@ enum class KVTYPE : uint8_t {
 
 class KVObj {
 public:
-	KVObj() : type(KVTYPE::INIT) {}
+	KVObj() : m_type(KVTYPE::INIT) {}
 	KVObj(KVTYPE);
 
-	iHNode hook;
-	KVTYPE type;
-
 	void rehash_hook() {
-		hook.hval = genHash((const byte *)key.data(), key.length());
+		m_hook.hval = genHash((const byte *)m_key.data(), m_key.length());
 	}
-
 
 	template <KVTYPE _type, typename... Args>
 	auto make_val(Args&&... args) -> std::pair<KVTYPE, Valtype*>;
 	/*
-	template <typename... Args>
+	template <m_typename... Args>
 	auto make_val(Args&&... args) -> std::pair<KVTYPE, Valtype*> {
-		return make_val<type>(std::forward<Args>(args)...);
+		return make_val<m_type>(std::forward<Args>(args)...);
 	}
 	*/
 
-	std::string &get_key() { return key; }
-	const std::string &get_key() const { return key; }
-	Valtype &get_val()   { return *val.get(); }
-	const Valtype &get_val() const { return *val.get(); }
-	Valtype *get_val_p() { return val.get(); }
-	const Valtype *get_val_p() const { return val.get(); }
+	// Accessors
+	iHNode* hook()                     { return &m_hook; }
+	const KVTYPE type()          const { return m_type; }
+	const std::string& get_key() const { return m_key; }
+	Valtype& val()                     { return (m_val.get() ? *m_val : Valtype::NIL); }
+	const Valtype& val()         const { return (m_val.get() ? *m_val : Valtype::NIL); }
+	Valtype* val_p()                   { return m_val.get(); }
+	const Valtype* val_p()       const { return m_val.get(); }
 
-	/* cpp 2x
+	// Mutators
+	void set_key(std::string &new_key) noexcept {
+		m_key = std::move(new_key);
+		rehash_hook();
+	}
+	void set_key(std::string &&new_key) noexcept {
+		m_key = new_key;
+		rehash_hook();
+	}
+
+	/* cpp 17+
 	template <KVTYPE kvt>
-	auto &get_val() {
+	auto &val() {
 		if constexpr (kvt string, hash, etc.) {
-			return (String&, hash&, etc.&)*val.get();
+			return (String&, hash&, etc.&)*m_val.get();
 		} else if...
 	}
-	can throw if kvt isn't same as type
+	can throw if kvt isn't same as m_type
 	*/
 
 private:
-	std::string key;
-	std::unique_ptr<Valtype> val;
+	iHNode m_hook;
+	KVTYPE m_type;
+
+	std::string m_key;
+	std::unique_ptr<Valtype> m_val;
+
+	friend class iHMap;
+	friend KVObj* get_kvobj(iHNode*);
+	friend KVObj& get_kvobj_v(iHNode*);
 };
+inline KVObj* get_kvobj(iHNode *hook)   { return utils::container_of(hook, &KVObj::m_hook); }
+inline KVObj& get_kvobj_v(iHNode *hook) { return *utils::container_of(hook, &KVObj::m_hook); }
 
 class String;
 class iHMap;
@@ -76,39 +94,37 @@ typedef struct tset TSet;
 
 template <KVTYPE _type, typename... Args>
 auto KVObj::make_val(Args&&... args) -> std::pair<KVTYPE, Valtype*> {
-	std::tuple<KVTYPE, Valtype*> out = { type, val.release() };
+	std::tuple<KVTYPE, Valtype*> out{ m_type, m_val.release() };
 
-	type = _type;
+	m_type = _type;
 	if constexpr (_type == KVTYPE::STRING) {
-		val = std::make_unique<String>(std::forward<Args>(args)...);
+		m_val = std::make_unique<String>(std::forward<Args>(args)...);
 	}
 	if constexpr (_type == KVTYPE::HASH) {
-		val = std::make_unique<iHMap>(std::forward<Args>(args)...);
+		m_val = std::make_unique<iHMap>(std::forward<Args>(args)...);
 	}
 	if constexpr (_type == KVTYPE::TSET) {
-		val = std::make_unique<TSet>(std::forward<Args>(args)...);
+		m_val = std::make_unique<TSet>(std::forward<Args>(args)...);
 	}
 
 	return out;
 }
+
 /*
-template <class KVT, typename... Args>
+template <class KVT, m_typename... Args>
 requires std::is_base_of_v<Valtype, KVT>
 KVT *KVObj::make_val(Args&&... args) {
-	KVT *out = val.release();
+	KVT *out = m_val.release();
 	val = std::make_unique<KVT>(std::forward<Args>(args)...);
 	reurn out;
 }
-
-inline KVObj *get_kvobj(iHNode *hook) {
-	return utils::container_of(hook, &KVObj::hook);
-}
+*/
 
 struct LookupDummy {
 	/*
-	LookupDummy(std::string_view _key) : key(_key) {
+	LookupDummy(std::string_view _key) : m_key(_key) {
 		hook.next = nullptr;
-		hook.hval = genHash((const byte *)key.data(), key.length());
+		hook.hval = genHash((const byte *)m_key.data(), m_key.length());
 	}
 	*/
 	iHNode hook;
