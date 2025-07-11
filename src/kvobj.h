@@ -46,13 +46,13 @@ public:
 	*/
 
 	// Accessors
-	iHNode* hook()                     { return &m_hook; }
-	const KVTYPE type()          const { return m_type; }
-	const std::string& get_key() const { return m_key; }
-	Valtype& val()                     { return (m_val.get() ? *m_val : Valtype::NIL); }
-	const Valtype& val()         const { return (m_val.get() ? *m_val : Valtype::NIL); }
-	Valtype* val_p()                   { return m_val.get(); }
-	const Valtype* val_p()       const { return m_val.get(); }
+	[[nodiscard]] iHNode* hook()                     { return &m_hook; }
+	[[nodiscard]] const KVTYPE type()          const { return m_type; }
+	[[nodiscard]] const std::string& get_key() const { return m_key; }
+	[[nodiscard]] Valtype& val()                     { return (m_val.get() ? *m_val : Valtype::NIL); }
+	[[nodiscard]] const Valtype& val()         const { return (m_val.get() ? *m_val : Valtype::NIL); }
+	[[nodiscard]] Valtype* val_p()                   { return m_val.get(); }
+	[[nodiscard]] const Valtype* val_p()       const { return m_val.get(); }
 
 	// Mutators
 	void set_key(std::string &new_key) noexcept {
@@ -71,6 +71,7 @@ public:
 			return (String&, hash&, etc.&)*m_val.get();
 		} else if...
 	}
+	auto *val() {...} same thing
 	can throw if kvt isn't same as m_type
 	*/
 
@@ -122,9 +123,9 @@ KVT *KVObj::make_val(Args&&... args) {
 
 struct LookupDummy {
 	/*
-	LookupDummy(std::string_view _key) : m_key(_key) {
+	LookupDummy(std::string_view _key) : key(_key) {
 		hook.next = nullptr;
-		hook.hval = genHash((const byte *)m_key.data(), m_key.length());
+		hook.hval = genHash((const byte *)key.data(), key.length());
 	}
 	*/
 	iHNode hook;
