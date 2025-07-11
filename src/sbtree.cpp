@@ -5,49 +5,49 @@
 namespace redbrouk
 {
 
-struct sbt_node *rotate_left(struct sbt_node *root);
-struct sbt_node *rotate_right(struct sbt_node *root);
-struct sbt_node *rotate_lr(struct sbt_node *root);
-struct sbt_node *rotate_rl(struct sbt_node *root);
-struct sbt_node *sbt_rotate(struct sbt_node *root);
+SBTNode *rotate_left(SBTNode *root);
+SBTNode *rotate_right(SBTNode *root);
+SBTNode *rotate_lr(SBTNode *root);
+SBTNode *rotate_rl(SBTNode *root);
+SBTNode *sbt_rotate(SBTNode *root);
 
 //-----------------------------------------
 // SBT Helpers
 //-----------------------------------------
 
 inline bool
-is_black(struct sbt_node *n) { return IS_NULL(n) || n->color; }
+is_black(SBTNode *n) { return IS_NULL(n) || n->color; }
 
-inline struct sbt_node *
-grandparent_of(struct sbt_node *n) { return n->parent->parent; }
+inline SBTNode *
+grandparent_of(SBTNode *n) { return n->parent->parent; }
 
-inline struct sbt_node *
-sibling_of(struct sbt_node *n) {
+inline SBTNode *
+sibling_of(SBTNode *n) {
 	if(IS_NULL(n->parent))
 		return &NILNODE;
 
 	return n == n->parent->left ? n->parent->right : n->parent->left;
 }
 
-inline struct sbt_node *
-uncle_of(struct sbt_node *n) {
+inline SBTNode *
+uncle_of(SBTNode *n) {
 	return sibling_of(n->parent);
 }
 
-inline struct sbt_node *
-neice_of(struct sbt_node *n) {
+inline SBTNode *
+neice_of(SBTNode *n) {
 	return n == n->parent->left ? sibling_of(n)->left : sibling_of(n)->right;
 }
 
-inline struct sbt_node *
-nephew_of(struct sbt_node *n) {
+inline SBTNode *
+nephew_of(SBTNode *n) {
 	return n == n->parent->right ? sibling_of(n)->left : sibling_of(n)->right;
 }
 
 /*
 * Rotates node by bringing 'root' down to the left of its right child.
 */
-struct sbt_node *rotate_left(struct sbt_node *root) {
+SBTNode *rotate_left(SBTNode *root) {
 	SBTNode *rch = root->right;
 	root->right = rch->left;
 	if(!IS_NULL(rch->left))
@@ -71,7 +71,7 @@ struct sbt_node *rotate_left(struct sbt_node *root) {
 /*
 * Rotates node by bringing 'root' down to the right of its left child.
 */
-struct sbt_node *rotate_right(struct sbt_node *root) {
+SBTNode *rotate_right(SBTNode *root) {
 	SBTNode *lch = root->left;
 	root->left = lch->right;
 
@@ -94,12 +94,12 @@ struct sbt_node *rotate_right(struct sbt_node *root) {
 	return lch;
 }
 
-struct sbt_node *rotate_lr(struct sbt_node *root) {
+SBTNode *rotate_lr(SBTNode *root) {
 	rotate_left(root->left);
 	return rotate_right(root);
 }
 
-struct sbt_node *rotate_rl(struct sbt_node *root) {
+SBTNode *rotate_rl(SBTNode *root) {
 	rotate_right(root->right);
 	return rotate_left(root);
 }
@@ -108,7 +108,7 @@ struct sbt_node *rotate_rl(struct sbt_node *root) {
 * If 'single' is true, get's the single level direction of node (parent)
 * Otherwise, get's the direction relative to parent and grandparent
 */
-inline DIRECTION get_dir(struct sbt_node *node, bool single = 0) {
+inline DIRECTION get_dir(SBTNode *node, bool single = 0) {
 	if( IS_NULL(node->parent) || (!single && IS_NULL(grandparent_of(node))) )
 		return NONE;
 
@@ -118,7 +118,7 @@ inline DIRECTION get_dir(struct sbt_node *node, bool single = 0) {
 		single << 2
 	);
 }
-inline void transplant(struct sbt_node *a, struct sbt_node *b) {
+inline void transplant(SBTNode *a, SBTNode *b) {
 	b->parent = a->parent;
 	if(IS_NULL(a->parent))
 		return;
@@ -133,7 +133,7 @@ inline void transplant(struct sbt_node *a, struct sbt_node *b) {
 //-----------------------------------------------------
 // SBTree functions (regular binary tree functions)
 //-----------------------------------------------------
-struct sbt_node **sbt_search(struct sbt_node **root, double _key) {
+SBTNode **sbt_search(SBTNode **root, double _key) {
 	if(!root)
 		return nullptr;
 
@@ -148,7 +148,7 @@ struct sbt_node **sbt_search(struct sbt_node **root, double _key) {
 	return root;
 }
 
-struct sbt_node **sbt_insert(struct sbt_node **root, struct sbt_node *in_node) {
+SBTNode **sbt_insert(SBTNode **root, SBTNode *in_node) {
 	if(!root) {
 		*root = in_node;
 		return root;
@@ -175,7 +175,7 @@ struct sbt_node **sbt_insert(struct sbt_node **root, struct sbt_node *in_node) {
 /*
 * Detaches a node 'root' from the tree and returns the node it's been replaced by.
 */
-struct sbt_node *sbt_detach(struct sbt_node *root) {
+SBTNode *sbt_detach(SBTNode *root) {
 	if(IS_NULL(root->right)) {
 		transplant(root, root->left);
 		return root->left;
@@ -194,11 +194,11 @@ struct sbt_node *sbt_detach(struct sbt_node *root) {
 
 	return new_root;
 }
-struct sbt_node *sbt_at(struct sbt_node *root, ssize_t offset) {
+SBTNode *sbt_at(SBTNode *root, ssize_t offset) {
 	size_t idx = 0;
 	return sbt_at(root, offset, idx);
 }
-struct sbt_node *sbt_at(struct sbt_node *root, ssize_t offset, size_t &index) {
+SBTNode *sbt_at(SBTNode *root, ssize_t offset, size_t &index) {
 	if(IS_NULL(root))
 		return root;
 
@@ -269,7 +269,7 @@ SBTNode *sbt_walk(SBTNode *root, ssize_t offset) {
 	return out;
 }
 
-struct sbt_node *sbt_rotate(struct sbt_node *root) {
+SBTNode *sbt_rotate(SBTNode *root) {
 	DIRECTION dir = get_dir(root);
 
 	switch(dir) {

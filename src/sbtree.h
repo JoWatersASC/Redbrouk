@@ -28,15 +28,15 @@ enum DIRECTION : uint8_t { LL = 0, LR, RL, RR, L, R, NONE };
  * container as well
  */
 typedef struct sbt_node {
-  struct sbt_node *parent;
+  sbt_node *parent;
 
   union {
     struct {
-      struct sbt_node *left;
-      struct sbt_node *right;
+      sbt_node *left;
+      sbt_node *right;
     };
 
-    struct sbt_node *children[2];
+    sbt_node *children[2];
   };
 
   double key;
@@ -48,25 +48,23 @@ inline std::partial_ordering operator<=>(const SBTNode &a, const SBTNode &b) {
   return a.key <=> b.key;
 }
 
-inline sbt_node NILNODE{ nullptr, { nullptr, nullptr }, 0, sbt_node::BLACK };
+inline SBTNode NILNODE{ nullptr, { nullptr, nullptr }, 0, sbt_node::BLACK };
 inline bool IS_NULL(SBTNode *N) { return !N || N == &NILNODE; }
 
-struct sbt_node **sbt_search(struct sbt_node **root, double _key);
-struct sbt_node **sbt_insert(struct sbt_node **root, struct sbt_node *in_node);
-struct sbt_node  *sbt_detach(struct sbt_node  *root);
-struct sbt_node  *sbt_at(struct sbt_node *root, ssize_t offset);
-struct sbt_node  *sbt_at(struct sbt_node *root, ssize_t offset, size_t &index); 
-struct sbt_node  *sbt_walk(struct sbt_node *root, ssize_t offset);
+SBTNode** sbt_search(SBTNode **root, double _key);
+SBTNode** sbt_insert(SBTNode **root, SBTNode *in_node);
+SBTNode*  sbt_detach(SBTNode  *root);
+SBTNode*  sbt_at(SBTNode *root, ssize_t offset);
+SBTNode*  sbt_at(SBTNode *root, ssize_t offset, size_t &index); 
+SBTNode*  sbt_walk(SBTNode *root, ssize_t offset);
 
-inline struct sbt_node *
-sbt_min(struct sbt_node *root) {
+inline SBTNode* sbt_min(SBTNode *root) {
 	while(root->left)
 		root = root->left;
 
 	return root;
 }
-inline struct sbt_node *
-sbt_max(struct sbt_node *root) {
+inline SBTNode* sbt_max(SBTNode *root) {
 	while(root->right)
 		root = root->right;
 

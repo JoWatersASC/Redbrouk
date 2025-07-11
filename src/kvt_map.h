@@ -14,11 +14,11 @@ namespace redbrouk
 class alignas(64) iHMap : public Valtype {
 public:
 	using IKVValtype::IKVValtype;
-	struct ih_set table;
+	iHSet table;
 };
 
 typedef struct ihm_pair { // string to string hash map entry pairs
-	struct ih_node node;
+	iHNode node;
 	string key;
 	string val;
 } iHMPair;
