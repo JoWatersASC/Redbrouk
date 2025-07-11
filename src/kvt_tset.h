@@ -4,6 +4,7 @@
 #include <string>
 
 #include "kvobj.h"
+#include "src/sbtree.h"
 
 namespace redbrouk
 {
