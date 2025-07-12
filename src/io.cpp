@@ -61,7 +61,7 @@ void io_context::main_loop() {
 			if(!conn)
 				continue;
 
-			struct pollfd pfd = { conn->getSocket(), POLLERR, 0 };
+			struct pollfd pfd = { conn->get_socket(), POLLERR, 0 };
 
 			if((bool)(conn->state & ConnState::RECVING))
 				pfd.events |= POLLIN;
@@ -82,7 +82,7 @@ void io_context::main_loop() {
 
 		if(pfds[0].revents) {
 			if(Conn *conn = Accept(listener.fd)) {
-				const socket_t fd = conn->getSocket();
+				const socket_t fd = conn->get_socket();
 				if(connections.size() <= (size_t)fd) {
 					connections.resize(fd + 1);
 				}
@@ -110,7 +110,7 @@ void io_context::main_loop() {
 
 			if((ready & POLLERR) || (bool)(conn->state & ConnState::CLOSED)) {
 				conn->Close();
-				connections[conn->getSocket()] = nullptr;
+				connections[conn->get_socket()] = nullptr;
 				delete conn;
 			}
 		}
@@ -119,7 +119,7 @@ void io_context::main_loop() {
 
 static void handle_read(Conn *conn) {
 	std::byte buf[64 * 1024];
-    ssize_t rv = conn->Recv(buf, sizeof(buf));
+    ssize_t rv = conn->recv(buf, sizeof(buf));
 
     if (rv < 0 && errno == EAGAIN) {
         return;
@@ -156,7 +156,7 @@ static void handle_read(Conn *conn) {
     }
 }
 static void handle_write(Conn *conn) {
-	ssize_t rv = conn->Send(conn->ot_buff + conn->ot_start, conn->ot_end - conn->ot_start);
+	ssize_t rv = conn->send(conn->ot_buff + conn->ot_start, conn->ot_end - conn->ot_start);
 
 	if (rv < 0 && errno == EAGAIN) {
         return;
@@ -202,7 +202,7 @@ namespace {
 //---------------------------------------------------------------------------------------
 // String val type functions
 //---------------------------------------------------------------------------------------
-void val(vector<string> &cmds, Response &out) { // get command from cmds vector
+void get_val(vector<string> &cmds, Response &out) { // get command from cmds vector
 	LookupDummy dummy{
 		.hook = { nullptr, genHash((const byte *)cmds[1].data(), cmds[1].length()) },
 		.key  = cmds[1]
@@ -380,7 +380,7 @@ static void do_request(std::vector<std::string> &cmd, Response &out) {
 	const size_t cmd_len = cmd.size();
 
     if (cmd_len == 2 && cmd[0] == "get") {
-		val(cmd, out);
+		get_val(cmd, out);
 		if(out.status == RES_NX)
 			return;
 
@@ -392,7 +392,7 @@ static void do_request(std::vector<std::string> &cmd, Response &out) {
 		do_add_tset(cmd, out);
 	} else if (cmd_len == 4 && cmd[0] == "trange") {
 		do_range_tset(cmd, out);
-	}else {
+	} else {
         out.status = RES_ERR;
     }
 }

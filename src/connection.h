@@ -1,14 +1,13 @@
 #ifndef REDBROUK_CONNECTION_H
 #define REDBROUK_CONNECTION_H
 
-#include <memory>
-#include <functional>
 #include <span>
 
 #include <cassert>
 #include <cstring>
 
 #include <arpa/inet.h>
+#include <unistd.h>
 
 namespace redbrouk
 {
@@ -17,14 +16,14 @@ using socket_t = int;
 using std::byte;
 
 enum class ConnState : uint8_t {
-	NONE			= 0,
-	CONNECTING		= (1 << 0),
-	ACCEPTING		= (1 << 1),
-	OPEN			= (1 << 2),
-	CLOSED			= (1 << 3),
-	SENDING			= (1 << 4),
-	RECVING			= (1 << 5),
-	ERR				= (1 << 6)
+	NONE		= 0,
+	CONNECTING	= (1 << 0),
+	ACCEPTING	= (1 << 1),
+	OPEN		= (1 << 2),
+	CLOSED		= (1 << 3),
+	SENDING		= (1 << 4),
+	RECVING		= (1 << 5),
+	ERR 		= (1 << 6)
 };
 
 using std::span;
@@ -35,18 +34,18 @@ public:
 	Conn(socket_t _m_fd = -1) : m_fd(_m_fd) {}
 	~Conn();
 
-	int Recv(byte *ibuff, size_t len);
-	int BRecv(byte *ibuff, size_t len); // Blocking reception
+	int recv(byte *ibuff, size_t len);
+	int brecv(byte *ibuff, size_t len); // Blocking reception
 
-	int Send(byte *obuff, size_t len);
-	int BSend(const span<byte> obuff); // Blocking send
+	int send(byte *obuff, size_t len);
+	int bsend(const span<byte> obuff); // Blocking send
 
 	[[nodiscard]]
-	const socket_t getSocket() const { return m_fd; }
+	const socket_t get_socket() const { return m_fd; }
 
 	void setPeerAddr(const sockaddr_in &peer_addr);
 
-	void Close() { close(m_fd); }
+	void Close() { ::close(m_fd); }
 
 	ConnState state = ConnState::NONE;
 
