@@ -1,5 +1,6 @@
 #include <cassert>
 #include <print>
+#include <random>
 
 #include "sbtree.h"
 #include "kvt_tset.h"
@@ -9,7 +10,9 @@ using namespace redbrouk;
 size_t left_len(SBTNode *node);
 
 int main(int argc, char *argv[]) {
-	std::println("{}", sizeof(struct sbt_node));
+	std::random_device rd;
+	std::mt19937_64 gen(rd());
+	std::uniform_real_distribution<> rdist(1, 1000);
 
 	double root_key = 150.f;
 	RBTNode *root = new sbt_node{ nullptr, {0}, root_key, sbt_node::BLACK };
@@ -19,21 +22,29 @@ int main(int argc, char *argv[]) {
 	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 180, sbt_node::RED });
 	print_sbt(root);
 	std::println("\n--------------------------------------------------------------------------------");
+
 	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 448, sbt_node::RED });
 	print_sbt(root);
 	std::println("\n--------------------------------------------------------------------------------");
+
 	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 460, sbt_node::RED });
 	print_sbt(root);
 	std::println("\n--------------------------------------------------------------------------------");
+
 	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 368, sbt_node::RED });
 	print_sbt(root);
 	std::println("\n--------------------------------------------------------------------------------");
-	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 259, sbt_node::RED });
-	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 816, sbt_node::RED });
-	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 648, sbt_node::RED });
-	print_sbt(root);
-	std::println("\n--------------------------------------------------------------------------------");
 
+	for(int i = 0; i < 10; i++) {
+		double l = rdist(gen);
+		std::println("Inserted: {}", l);
+
+		rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, l, sbt_node::RED });
+		print_sbt(root);
+		std::println("\n--------------------------------------------------------------------------------");
+	}
+
+	std::println("Deleted: {}", root->right->key);
 	rbt_delete(&root, root->right);
 	print_sbt(root);
 	std::println("\n--------------------------------------------------------------------------------");
@@ -42,6 +53,21 @@ int main(int argc, char *argv[]) {
 	print_sbt(root);
 	std::println("\n--------------------------------------------------------------------------------");
 	
+	std::println("Deleted: {}", root->left->key);
+	rbt_delete(&root, root->left);
+	print_sbt(root);
+	std::println("\n--------------------------------------------------------------------------------");
+
+	std::println("Deleted: {}", root->right->left->key);
+	rbt_delete(&root, root->right->left);
+	print_sbt(root);
+	std::println("\n--------------------------------------------------------------------------------");
+
+	std::println("Deleted: {}", root->right->key);
+	rbt_delete(&root, root->right);
+	print_sbt(root);
+	std::println("\n--------------------------------------------------------------------------------");
+
 	rbt_insert(&root, new sbt_node{ root, { &NILNODE, &NILNODE }, 77, sbt_node::RED });
 	print_sbt(root);
 	std::println("\n--------------------------------------------------------------------------------");
