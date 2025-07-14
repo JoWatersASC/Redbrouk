@@ -49,13 +49,16 @@ public:
 
 	ConnState state = ConnState::NONE;
 
-	byte in_buff[1024 * 2];
-	byte ot_buff[1024 * 2];
+	byte *in_buff;
+	byte *ot_buff;
 
 	off_t in_start = 0, in_end = 0;
 	off_t ot_start = 0, ot_end = 0;
-	inline const off_t in_size() const { return in_end - in_start; }
-	inline const off_t ot_size() const { return ot_end - ot_start; }
+
+	byte* in_data() { return in_buff + in_start; }
+	byte* ot_data() { return ot_buff + ot_start; }
+	const off_t in_size() const { return in_end - in_start; }
+	const off_t ot_size() const { return ot_end - ot_start; }
 
 private:
 	endpoint* peer_ep;
