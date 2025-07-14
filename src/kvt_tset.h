@@ -32,6 +32,7 @@ inline size_t ts_size(TSet *tst) {
 // *n means do <function> by name instead of pointer to node
 bool ts_insert(TSet *tst, TSTNode *node);
 bool ts_insertn(TSet *tst, std::string &_name, double _score);
+bool ts_insertn(TSet *tst, std::string &&_name, double _score);
 bool ts_delete(TSet *tst, TSTNode *node, bool);
 bool ts_deleten(TSet *tst, std::string_view _name);
 bool ts_update(TSet *tst, TSTNode *node, double _score);

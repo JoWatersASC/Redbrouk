@@ -48,6 +48,15 @@ bool ts_insertn(TSet *tst, std::string &_name, double _score) {
 	delete in_node;
 	return false;
 }
+bool ts_insertn(TSet *tst, std::string &&_name, double _score) {
+	TSTNode *in_node = mk_tstn(_name, _score);
+
+	if(ts_insert(tst, in_node))
+		return true;
+
+	delete in_node;
+	return false;
+}
 bool ts_delete(TSet *tst, TSTNode *del_node, bool reclaim_mem = false) {
 	if(!del_node)
 		return false;
