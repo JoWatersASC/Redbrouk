@@ -28,24 +28,24 @@ enum DIRECTION : uint8_t { LL = 0, LR, RL, RR, L, R, NONE };
  * container as well
  */
 typedef struct sbt_node {
-  sbt_node *parent;
+	sbt_node *parent;
 
-  union {
-    struct {
-      sbt_node *left;
-      sbt_node *right;
-    };
+	union {
+		struct {
+			sbt_node *left;
+			sbt_node *right;
+		};
 
-    sbt_node *children[2];
-  };
+		sbt_node *children[2];
+	};
 
-  double key;
-  enum { RED, BLACK } color : 1 = RED;
+	double key;
+	enum { RED, BLACK } color : 1 = RED;
 } SBTNode, RBTNode; // , AVLNode;
 
 [[nodiscard]]
 inline std::partial_ordering operator<=>(const SBTNode &a, const SBTNode &b) {
-  return a.key <=> b.key;
+	return a.key <=> b.key;
 }
 
 inline SBTNode NILNODE{ nullptr, { nullptr, nullptr }, 0, sbt_node::BLACK };
@@ -53,7 +53,7 @@ inline bool IS_NULL(SBTNode *N) { return !N || N == &NILNODE; }
 
 SBTNode** sbt_search(SBTNode **root, double _key);
 SBTNode** sbt_insert(SBTNode **root, SBTNode *in_node);
-SBTNode*  sbt_detach(SBTNode  *root);
+SBTNode*  sbt_detach(SBTNode	*root);
 SBTNode*  sbt_at(SBTNode *root, ssize_t offset);
 SBTNode*  sbt_at(SBTNode *root, ssize_t offset, size_t &index); 
 SBTNode*  sbt_walk(SBTNode *root, ssize_t offset);
@@ -78,19 +78,19 @@ void rbt_fix(RBTNode *node);
 void rbt_del_fix(RBTNode *);
 
 static void print_sbt_help(SBTNode *node, int &count, int indent = 0) {
-  if (IS_NULL(node))
-    return;
+	if (IS_NULL(node))
+		return;
 
-  // Print right subtree first (top of output)
-  print_sbt_help(node->right, count, indent + 8);
+	// Print right subtree first (top of output)
+	print_sbt_help(node->right, count, indent + 8);
 
-  if (indent)
-    std::cout << std::setw(indent) << ' ';
+	if (indent)
+		std::cout << std::setw(indent) << ' ';
 
-  std::cout << (!node->color ? "\033[31m" : "\033[97m") << '[' << count++ << "]. " << node->key << "\n";
+	std::cout << (!node->color ? "\033[31m" : "\033[97m") << '[' << count++ << "]. " << node->key << "\n";
 
-  // Print left subtree (bottom of output)
-  print_sbt_help(node->left, count, indent + 4);
+	// Print left subtree (bottom of output)
+	print_sbt_help(node->left, count, indent + 4);
 }
 static void print_sbt(SBTNode *node, int indent = 0) {
 	int count = 0;

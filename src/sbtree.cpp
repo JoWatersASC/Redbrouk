@@ -15,39 +15,33 @@ SBTNode *sbt_rotate(SBTNode *root);
 // SBT Helpers
 //-----------------------------------------
 
-inline bool
-is_black(SBTNode *n) { return IS_NULL(n) || n->color; }
+inline bool is_black(SBTNode *n) { return IS_NULL(n) || n->color; }
 
-inline SBTNode *
-grandparent_of(SBTNode *n) { return n->parent->parent; }
+inline SBTNode* grandparent_of(SBTNode *n) { return n->parent->parent; }
 
-inline SBTNode *
-sibling_of(SBTNode *n) {
+inline SBTNode* sibling_of(SBTNode *n) {
 	if(IS_NULL(n->parent))
 		return &NILNODE;
 
 	return n == n->parent->left ? n->parent->right : n->parent->left;
 }
 
-inline SBTNode *
-uncle_of(SBTNode *n) {
+inline SBTNode* uncle_of(SBTNode *n) {
 	return sibling_of(n->parent);
 }
 
-inline SBTNode *
-neice_of(SBTNode *n) {
+inline SBTNode* neice_of(SBTNode *n) {
 	return n == n->parent->left ? sibling_of(n)->left : sibling_of(n)->right;
 }
 
-inline SBTNode *
-nephew_of(SBTNode *n) {
+inline SBTNode* nephew_of(SBTNode *n) {
 	return n == n->parent->right ? sibling_of(n)->left : sibling_of(n)->right;
 }
 
 /*
 * Rotates node by bringing 'root' down to the left of its right child.
 */
-SBTNode *rotate_left(SBTNode *root) {
+SBTNode* rotate_left(SBTNode *root) {
 	SBTNode *rch = root->right;
 	root->right = rch->left;
 	if(!IS_NULL(rch->left))
@@ -71,7 +65,7 @@ SBTNode *rotate_left(SBTNode *root) {
 /*
 * Rotates node by bringing 'root' down to the right of its left child.
 */
-SBTNode *rotate_right(SBTNode *root) {
+SBTNode* rotate_right(SBTNode *root) {
 	SBTNode *lch = root->left;
 	root->left = lch->right;
 
@@ -94,12 +88,12 @@ SBTNode *rotate_right(SBTNode *root) {
 	return lch;
 }
 
-SBTNode *rotate_lr(SBTNode *root) {
+SBTNode* rotate_lr(SBTNode *root) {
 	rotate_left(root->left);
 	return rotate_right(root);
 }
 
-SBTNode *rotate_rl(SBTNode *root) {
+SBTNode* rotate_rl(SBTNode *root) {
 	rotate_right(root->right);
 	return rotate_left(root);
 }
@@ -133,7 +127,7 @@ inline void transplant(SBTNode *a, SBTNode *b) {
 //-----------------------------------------------------
 // SBTree functions (regular binary tree functions)
 //-----------------------------------------------------
-SBTNode **sbt_search(SBTNode **root, double _key) {
+SBTNode** sbt_search(SBTNode **root, double _key) {
 	if(!root)
 		return nullptr;
 
@@ -148,7 +142,7 @@ SBTNode **sbt_search(SBTNode **root, double _key) {
 	return root;
 }
 
-SBTNode **sbt_insert(SBTNode **root, SBTNode *in_node) {
+SBTNode** sbt_insert(SBTNode **root, SBTNode *in_node) {
 	if(!root) {
 		*root = in_node;
 		return root;
@@ -175,7 +169,7 @@ SBTNode **sbt_insert(SBTNode **root, SBTNode *in_node) {
 /*
 * Detaches a node 'root' from the tree and returns the node it's been replaced by.
 */
-SBTNode *sbt_detach(SBTNode *root) {
+SBTNode* sbt_detach(SBTNode *root) {
 	if(IS_NULL(root->right)) {
 		transplant(root, root->left);
 		return root->left;
@@ -194,11 +188,11 @@ SBTNode *sbt_detach(SBTNode *root) {
 
 	return new_root;
 }
-SBTNode *sbt_at(SBTNode *root, ssize_t offset) {
+SBTNode* sbt_at(SBTNode *root, ssize_t offset) {
 	size_t idx = 0;
 	return sbt_at(root, offset, idx);
 }
-SBTNode *sbt_at(SBTNode *root, ssize_t offset, size_t &index) {
+SBTNode* sbt_at(SBTNode *root, ssize_t offset, size_t &index) {
 	if(IS_NULL(root))
 		return root;
 
@@ -214,7 +208,7 @@ SBTNode *sbt_at(SBTNode *root, ssize_t offset, size_t &index) {
 	return right;
 }
 
-static SBTNode *sbt_walk_forw(SBTNode* node) {
+static SBTNode* sbt_walk_forw(SBTNode* node) {
     if(IS_NULL(node))
         return nullptr;
 
@@ -233,7 +227,7 @@ static SBTNode *sbt_walk_forw(SBTNode* node) {
 
     return p;
 }
-static SBTNode *sbt_walk_back(SBTNode* node) {
+static SBTNode* sbt_walk_back(SBTNode* node) {
     if(IS_NULL(node))
         return nullptr;
 
@@ -253,7 +247,7 @@ static SBTNode *sbt_walk_back(SBTNode* node) {
     return p;
 }
 
-SBTNode *sbt_walk(SBTNode *root, ssize_t offset) {
+SBTNode* sbt_walk(SBTNode *root, ssize_t offset) {
 	SBTNode *out = root;
 
 	if(offset < 0) {
@@ -269,7 +263,7 @@ SBTNode *sbt_walk(SBTNode *root, ssize_t offset) {
 	return out;
 }
 
-SBTNode *sbt_rotate(SBTNode *root) {
+SBTNode* sbt_rotate(SBTNode *root) {
 	DIRECTION dir = get_dir(root);
 
 	switch(dir) {
@@ -322,7 +316,7 @@ void rbt_fix(RBTNode *node) {
 	}
 }
 
-RBTNode *rbt_insert(RBTNode **root, RBTNode *in_node) {
+RBTNode* rbt_insert(RBTNode **root, RBTNode *in_node) {
 	RBTNode **inserted = sbt_insert(root, in_node);
 	if(!inserted)
 		return &NILNODE;
@@ -348,7 +342,7 @@ void rbt_delete(RBTNode **root, RBTNode *del_node) {
 
 	//2 children
 	if(!IS_NULL(del_node->left) && !IS_NULL(del_node->right)) {
-		std::println("Branch 1");
+//		std::println("Branch 1");
 		RBTNode *successor = del_node->right;
 
 		while(!IS_NULL(successor->left))
@@ -398,7 +392,7 @@ void rbt_delete(RBTNode **root, RBTNode *del_node) {
 	}
 	//1 child
 	if(!IS_NULL(del_node->left)) {
-		std::println("Branch 2");
+//		std::println("Branch 2");
 
 		was_black = (del_node->left->color == RBTNode::BLACK);
 		bool on_left = (get_dir(del_node, true) == L);
@@ -425,7 +419,7 @@ void rbt_delete(RBTNode **root, RBTNode *del_node) {
 		return;
 	}
 	if(!IS_NULL(del_node->right)) {
-		std::println("Branch 3");
+//		std::println("Branch 3");
 
 		was_black = (del_node->right->color == RBTNode::BLACK);
 		bool on_left = (get_dir(del_node, true) == L);
@@ -454,12 +448,12 @@ void rbt_delete(RBTNode **root, RBTNode *del_node) {
 
 	//cases where del_node has no children
 	if( del_node_isroot ) { // del_node is the root
-		std::println("Branch 4");
+//		std::println("Branch 4");
 		*root = nullptr;
 		return;
 	}
 
-	std::println("Branch 5");
+//	std::println("Branch 5");
 	if(get_dir(del_node, true) == L)
 		del_node->parent->left = &NILNODE;
 	else
@@ -467,7 +461,7 @@ void rbt_delete(RBTNode **root, RBTNode *del_node) {
 	if(!is_black(del_node))
 		return;
 
-	std::println("Branch 5.5");
+//	std::println("Branch 5.5");
 	NILNODE.color  = RBTNode::BLACK;
 	NILNODE.parent = del_node->parent;
 	rbt_del_fix(&NILNODE);
