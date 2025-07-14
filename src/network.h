@@ -100,11 +100,6 @@ static Conn *Accept(socket_t listen_fd, Conn* place = nullptr) {
 	else
 		c = new Conn(conn_fd);
 	
-	/* uint32_t ip = client_addr.sin_addr.s_addr;
-		std::println("New client from {}.{}.{}.{}:{}", 
-		ip & 255, (ip >> 8) & 255, (ip >> 16) & 255, ip >> 24,
-        ntohs(client_addr.sin_port)
-    ); */
 	c->state = ConnState::OPEN | ConnState::RECVING;
 
 	return c;
