@@ -1,5 +1,6 @@
 #include <print>
 #include "sbtree.h"
+#include "src/io.h"
 #include "src/utils.h"
 
 namespace redbrouk
@@ -167,26 +168,32 @@ SBTNode** sbt_insert(SBTNode **root, SBTNode *in_node) {
 }
 
 /*
-* Detaches a node 'root' from the tree and returns the node it's been replaced by.
+* Detaches a node 'root' from the tree and returns the deleted node.
 */
 SBTNode* sbt_detach(SBTNode *root) {
 	if(IS_NULL(root->right)) {
 		transplant(root, root->left);
-		return root->left;
+		return root;
 	}
-	SBTNode *new_root = root->right;
+	SBTNode *successor = root->right;
+	SBTNode *X = successor;
 
-	while(!IS_NULL(new_root->left)) {
-		new_root = new_root->left;
+	while(!IS_NULL(successor->left)) {
+		successor = successor->left;
 	}
-	transplant(new_root, new_root->right);
-	if(get_dir(new_root, true) == L)
-		new_root->parent->left = new_root->right;
 
-	transplant(root, new_root);
-	new_root->left = root->left;
+	X = successor->right;
+	transplant(successor, successor->right);
+	transplant(root, successor);
+	successor->left = root->left;
+	successor->right = root->right;
 
-	return new_root;
+	if(!IS_NULL(successor->left))
+		successor->left->parent = successor;
+	if(!IS_NULL(successor->right))
+		successor->right->parent = successor;
+
+	return X;
 }
 SBTNode* sbt_at(SBTNode *root, ssize_t offset) {
 	size_t idx = 0;
@@ -333,205 +340,120 @@ RBTNode* rbt_insert(RBTNode **root, RBTNode *in_node) {
 
 // NEEDS TO BE CLEANED UP
 void rbt_delete(RBTNode **root, RBTNode *del_node) {
-	auto fix_root = [&] {
-		while(!IS_NULL((*root)->parent))
-			*root = (*root)->parent;
-	};
 	bool del_node_isroot = (*root == del_node);
-	bool was_black;
+	bool was_black = is_black(del_node);
+	RBTNode *X, *Y = del_node;
 
-	//2 children
-	if(!IS_NULL(del_node->left) && !IS_NULL(del_node->right)) {
-//		std::println("Branch 1");
-		RBTNode *successor = del_node->right;
-
-		while(!IS_NULL(successor->left))
-			successor = successor->left;
-
-		// has right child
-		// have to move right child into its place
-		RBTNode *scsr_repln = successor->right; // successor replacement node
-		RBTNode *scsr_p = successor->parent;
-
-		was_black = (successor->color == RBTNode::BLACK);
-		bool first_ch = (successor->parent == del_node);
-
-		if( first_ch ) {// case that successor is just the first right child
-			scsr_repln->parent = successor;
-		} else {
-			transplant(successor, successor->right);
-
-		}
-
-		successor->color = del_node->color;
-		transplant(del_node, successor);
-		successor->left = del_node->left;
-		if( !first_ch )
-			successor->right = del_node->right;
-
-		if(!IS_NULL(successor->left))
-			successor->left->parent = successor;
-		if(!IS_NULL(successor->right))
-			successor->right->parent = successor;
-
-		if( first_ch ) {
-			successor->right = scsr_repln;
-			scsr_repln->parent = successor;
-		} else {
-			scsr_p->left = scsr_repln;
-			scsr_repln->parent = scsr_p;
-			scsr_repln->color = successor->color;
-		}
-		if( del_node_isroot )
-			*root = successor;
-
-		NILNODE.color = RBTNode::BLACK;
-		if( was_black )
-			rbt_del_fix(scsr_repln);
-		return;
+	NILNODE.parent = Y;
+	if(IS_NULL(del_node->left) && IS_NULL(del_node->right)) {
+		X = del_node->right;
+		transplant(del_node, del_node->right);
 	}
-	//1 child
-	if(!IS_NULL(del_node->left)) {
-//		std::println("Branch 2");
-
-		was_black = (del_node->left->color == RBTNode::BLACK);
-		bool on_left = (get_dir(del_node, true) == L);
-
-		del_node->left->parent = del_node->parent;
-		if(!IS_NULL(del_node->parent)) {
-			if( on_left )
-				del_node->parent->left = del_node->left;
-			else
-				del_node->parent->right = del_node->left;
-		} else { // if root
-			(*root) = del_node->left;
-			(*root)->color = RBTNode::BLACK;
-			return;
-		}
-
-		if( was_black )
-			rbt_del_fix(del_node->left);
-		else
-			del_node->left->color = RBTNode::BLACK;
-
-		if( del_node_isroot )
-			*root = del_node->left;
-		return;
+	else if(IS_NULL(del_node->right)) {
+		X = del_node->left;
+		transplant(del_node, del_node->left);
+		was_black = is_black(X);
+		X->color = del_node->color;
 	}
-	if(!IS_NULL(del_node->right)) {
-//		std::println("Branch 3");
+	else if(IS_NULL(del_node->left)) {
+		X = del_node->right;
+		transplant(del_node, del_node->right);
+		was_black = is_black(X);
+		X->color = del_node->color;
+	}
+	else {
+		Y = del_node->right;
+		while(!IS_NULL(Y->left))
+			Y = Y->left;
 
-		was_black = (del_node->right->color == RBTNode::BLACK);
-		bool on_left = (get_dir(del_node, true) == L);
+		X = Y->right;
+		transplant(Y, X);
+		transplant(del_node, Y);
 
-		del_node->right->parent = del_node->parent;
-		if(!IS_NULL(del_node->parent)) {
-			if( on_left )
-				del_node->parent->left = del_node->right;
-			else
-				del_node->parent->right = del_node->right;
-		} else { // if root
-			(*root) = del_node->right;
-			(*root)->color = RBTNode::BLACK;
-			return;
+		if(Y != del_node->right) {
+			Y->right = del_node->right;
+			Y->right->parent = Y;
 		}
+		Y->left = del_node->left;
+		Y->left->parent = Y;
 
-		if( was_black )
-			rbt_del_fix(del_node->right);
-		else
-			del_node->right->color = RBTNode::BLACK;
-
-		if( del_node_isroot )
-			*root = del_node->right;
-		return;
+		was_black = is_black(Y);
+		Y->color = del_node->color;
 	}
 
-	//cases where del_node has no children
-	if( del_node_isroot ) { // del_node is the root
-//		std::println("Branch 4");
-		*root = nullptr;
-		return;
-	}
-
-//	std::println("Branch 5");
-	if(get_dir(del_node, true) == L)
-		del_node->parent->left = &NILNODE;
-	else
-		del_node->parent->right = &NILNODE;
-	if(!is_black(del_node))
-		return;
-
-//	std::println("Branch 5.5");
-	NILNODE.color  = RBTNode::BLACK;
-	NILNODE.parent = del_node->parent;
-	rbt_del_fix(&NILNODE);
-	
-	fix_root();
+	if( was_black )
+		rbt_del_fix(*root, X);
 }
 
-void rbt_del_fix(RBTNode *node) {
+void rbt_del_fix(RBTNode *&root, RBTNode *node) {
 	RBTNode *sib, *neice, *nephew;
-	RBTNode dummy{ 0 }; // dummy node to break out of while loop on case 4
 
 	while(!IS_NULL(node->parent) && node->color == RBTNode::BLACK) {
 		sib = sibling_of(node);
 		neice = neice_of(node);
 		nephew = nephew_of(node);
 
-		bool red_sibling        = sib->color == RBTNode::RED;
-		bool two_black_children = is_black(sib->left) && is_black(sib->right);
-		bool red_neice          = !is_black(neice);
-		bool red_nephew         = !is_black(nephew); // would be the same as saying 'else'
+		enum { LEFT, RIGHT } SIDE = ( get_dir(node, true) == L ? LEFT : RIGHT );
+		bool red_parent           = ( node->parent->color == RBTNode::RED );
+		bool red_sibling          = ( sib->color == RBTNode::RED );
+		bool double_black         = is_black(sib->left) && is_black(sib->right);
+		bool red_neice            = !is_black(neice);
+		bool red_nephew           = !is_black(nephew); // would be the same as saying 'else'
 
-		if( red_sibling ) {
-			if(get_dir(node, true) == L) {
+		if( red_parent ) {
+			if( red_neice ) {
+				if(SIDE == LEFT) {
+					rotate_right(sib);
+					rotate_left(node->parent);
+				} else {
+					rotate_left(sib);
+					rotate_right(node->parent);
+				}
+				node->parent->color = RBTNode::BLACK;
+			}
+			else if(SIDE == LEFT) {
 				rotate_left(node->parent);
-				sib = node->parent->right;
-			}
-			else {
+			} else {
 				rotate_right(node->parent);
-				sib = node->parent->right;
 			}
 
-			if(!IS_NULL(node->parent)) {
-				node->parent->color = RBTNode::RED;
+			break;
+		}
+		if( red_sibling ) {
+			RBTNode *p = node->parent;
+			if(SIDE == LEFT) {
+				rotate_left(p);
+			} else {
+				rotate_right(p);
+			}
 
-				if(!IS_NULL(grandparent_of(node)))
-					grandparent_of(node)->color = RBTNode::BLACK;
-			}
-			if(is_black(sib->left) && is_black(sib->right)) {
-				sib->color = RBTNode::RED;
-				node = node->parent;
-			}
+			p->color = RBTNode::RED;
+			sib->color = RBTNode::BLACK;
+			break;
 		}
-		else if( two_black_children ) { // black neice and black nephew
-			sib->color = RBTNode::RED;
-			node = node->parent;
-		}
-		else if( red_neice && !red_nephew ){
-			if(get_dir(node, true) == L)
-				rotate_right(sib);
+		if( red_nephew ) {
+			if(SIDE == LEFT)
+				rotate_left(node->parent);
 			else
-				rotate_left(sib);
-
-			sib->color = RBTNode::RED;
-			sib->parent->color = RBTNode::BLACK;
-		} else if( red_nephew ) {
+				rotate_right(node->parent);
 			nephew->color = RBTNode::BLACK;
 
-			if(get_dir(node, true) == L) {
-				rotate_left(node->parent);
-			} else
-				rotate_right(node->parent);
+			break;
+		}
+		if( red_neice ) {
+			sbt_rotate(neice);
+			neice->color = RBTNode::BLACK;
+			break;
+		}
 
-			sib->color = node->parent->color;
-			node->parent->color = RBTNode::BLACK;
-			node = &dummy;
-		} // should maybe switch red_neice and red_nephew cases as if red_nephew fails, all that's needed to know is red_neice
-	
+		sib->color = RBTNode::RED;
+		node = grandparent_of(node);
+		if(IS_NULL(node))
+			return;
 	}
 	node->color = RBTNode::BLACK;
-// Always change node's color to black
+	if(IS_NULL(node->parent))
+		root = node;
 }
 
 } // namespace redbrouk

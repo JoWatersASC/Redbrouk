@@ -1,5 +1,7 @@
 #ifndef REDBROUK_SBTREE_H
 #define REDBROUK_SBTREE_H
+#include <cassert>
+#include <print>
 
 #include <cstddef>
 #include <cstdint>
@@ -75,7 +77,10 @@ inline SBTNode* sbt_max(SBTNode *root) {
 RBTNode *rbt_insert(RBTNode **root, RBTNode *in_node);
 void rbt_delete(RBTNode **root, RBTNode *del_node);
 void rbt_fix(RBTNode *node);
-void rbt_del_fix(RBTNode *);
+void rbt_del_fix(RBTNode *&root, RBTNode *X);
+
+#define RED_COLOR "\033[31m"
+#define BLACK_COLOR "\033[0m"
 
 static void print_sbt_help(SBTNode *node, int &count, int indent = 0) {
 	if (IS_NULL(node))
