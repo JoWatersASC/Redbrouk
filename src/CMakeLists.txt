@@ -10,6 +10,7 @@ set(SRC_FILES
 
 	"kvobj.cpp"
 	"kvt_map.cpp"
+	"kvt_set.cpp"
 	"kvt_tset.cpp"
 )
 set(HEADER_FILES
@@ -22,6 +23,7 @@ set(HEADER_FILES
 	"sbtree.h"
 
 	"kvobj.h"
+	"kvt_hash_t.h"
 	"kvt_map.h"
 	"kvt_tset.h"
 )
