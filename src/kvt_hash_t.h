@@ -84,9 +84,11 @@ private:
 
 	unique_ptr<HashSetNode>* table_find(Table &table, string_view _data);
 };
+using Set = HashSet;
 
 class HashMap : Valtype {
 public:
+	HashMap() { m_data.reserve(16); }
 	void insert(std::string _key, std::string _val) {
 		HashMapNode &node = m_data.emplace_back(_key, _val);
 		m_set.insert(&node.sn);
@@ -117,6 +119,7 @@ private:
 	std::vector<HashMapNode> m_data;
 	HashSet m_set;
 };
+using Dict = HashMap;
 
 struct NodeDummy {
 	NodeDummy(string_view _data) :
