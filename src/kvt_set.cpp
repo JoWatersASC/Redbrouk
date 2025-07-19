@@ -2,6 +2,10 @@
 
 namespace redbrouk {
 
+HashSet::HashSet() {
+	curr.buckets = std::make_unique<unique_ptr<HashSetNode>[]>(8);
+	curr.mask = 7;
+}
 void HashSet::insert(HashSetNode *node) {
 	const size_t pos = node->hash_val & curr.mask;
 
@@ -18,11 +22,11 @@ void HashSet::insert(std::string _data) {
 }
 
 HashSetNode* HashSet::find(string_view _data) {
-	if( HashSetNode *match = table_find(curr, _data)->get() )
-		return match;
+	if( unique_ptr<HashSetNode> *match = table_find(curr, _data) )
+		return match->get();
 
-	if( HashSetNode *match = table_find(prev, _data)->get() )
-		return match;
+	if( unique_ptr<HashSetNode> *match = table_find(prev, _data) )
+		return match->get();
 
 	return nullptr;
 }
@@ -57,6 +61,9 @@ void HashSet::progress_rehash() {
 }
 
 unique_ptr<HashSetNode>* HashSet::table_find(Table &table, string_view _data) {
+	if(!table.buckets)
+		return nullptr;
+
 	NodeDummy dummy(_data);
 
 	const size_t pos = dummy.hash_val & table.mask;

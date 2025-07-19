@@ -58,6 +58,7 @@ struct HashMapNode {
 
 class HashSet : Valtype {
 public:
+	HashSet();
 	void insert(std::string _data);
 	void insert(HashSetNode *node);
 	HashSetNode* find(string_view _data);
