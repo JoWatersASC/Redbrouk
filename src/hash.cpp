@@ -4,7 +4,7 @@ namespace redbrouk
 {
 
 void iht_insert(iHTab *ht, iHNode *node) {
-	size_t pos = node->hval & ht->mask;
+	const size_t pos = node->hval & ht->mask;
 
 	node->next = ht->buckets[pos];
 	ht->buckets[pos] = node;
