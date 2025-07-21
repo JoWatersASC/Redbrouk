@@ -147,14 +147,14 @@ MAKE_FORMATTER(redbrouk::HashSet::Table, {
 	string buckets;
 
 if(type.size == 0)
-	buckets = "EMPTY";
+	buckets = "";
 else
 	buckets = [&] {
 		std::string b_string;
 
 		for(int i = 0; i <= type.nbuckets; i++) {
-			if(PRINTING_HS)
-				b_string.append(std::format("\t\[{}] ", i));
+			if(PRINTING_HS || PRINTING_HM)
+				b_string.append(std::format("\t  [{}] ", i));
 			else
 				b_string.append(std::format("\t[{}] ", i));
 			unique_ptr<redbrouk::HashSetNode> *bucket = &type.buckets[i];
@@ -178,7 +178,7 @@ else
 		return b_string;
 	}();
 
-if(PRINTING_HS)
+if(PRINTING_HS || PRINTING_HM)
 	str.assign(std::format(
 		"\tSize: {}\n"
 		"\tMask: {}\n"
@@ -200,8 +200,8 @@ else
 MAKE_FORMATTER(redbrouk::HashSet, {
 	const size_t size = type.curr.size + type.prev.size;
 	const size_t mpos = type.migrate_pos;
-	PRINTING_HS = true;
 
+	PRINTING_HS = true;
 	str.assign(std::format(
 		"Size: {}\n"
 		"Migration Position: {}\n"
@@ -209,5 +209,6 @@ MAKE_FORMATTER(redbrouk::HashSet, {
 		"Previous Table: \n{}",
 		size, mpos, type.curr, type.prev
 	));
+	PRINTING_HS = false;
 })
 #endif
