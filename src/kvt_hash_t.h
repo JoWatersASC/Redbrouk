@@ -84,6 +84,8 @@ private:
 	void progress_rehash();
 
 	unique_ptr<HashSetNode>* table_find(Table &table, string_view _data);
+
+	friend class HashMap;
 	friend struct std::formatter<Table>;
 	friend struct std::formatter<HashSet>;
 };
@@ -112,15 +114,18 @@ public:
 	}
 
 private:
-	HashMapNode *mnfromsn(HashSetNode *node) {
+	static HashMapNode *mnfromsn(HashSetNode *node) {
 		return utils::container_of(node, &HashMapNode::sn);
 	}
-	HashMapNode &mnfromsn_v(HashSetNode *node) {
+	static HashMapNode &mnfromsn_v(HashSetNode *node) {
 		return *utils::container_of(node, &HashMapNode::sn);
 	}
 
 	std::vector<HashMapNode> m_data;
 	HashSet m_set;
+
+	friend struct std::formatter<HashSet::Table>;
+	friend struct std::formatter<HashMap>;
 };
 using Dict = HashMap;
 
@@ -137,6 +142,7 @@ struct NodeDummy {
 } // namespace redbrouk
 
 static inline bool PRINTING_HS = false;
+static inline bool PRINTING_HM = false;
 MAKE_FORMATTER(redbrouk::HashSet::Table, {
 	string buckets;
 
@@ -148,13 +154,20 @@ else
 
 		for(int i = 0; i <= type.nbuckets; i++) {
 			if(PRINTING_HS)
-				b_string.append(std::format("\t\[{}]: ", i));
+				b_string.append(std::format("\t\[{}] ", i));
 			else
-				b_string.append(std::format("\t[{}]: ", i));
+				b_string.append(std::format("\t[{}] ", i));
 			unique_ptr<redbrouk::HashSetNode> *bucket = &type.buckets[i];
 
 			while( auto &elt = *bucket ) {
-				b_string.append(std::format("{}, ", elt->key));
+				if(PRINTING_HM)
+					b_string.append(std::format(
+						"{} : {}, ",
+						elt->key,
+						redbrouk::HashMap::mnfromsn_v(elt.get()).val
+					));
+				else
+					b_string.append(std::format("{}, ", elt->key));
 				bucket = &(*bucket)->next;
 			}
 
