@@ -3,8 +3,8 @@
 
 #include "kvobj.h"
 #include "src/utils.h"
-#include <concepts>
 #include <cstddef>
+#include <format>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -84,6 +84,8 @@ private:
 	void progress_rehash();
 
 	unique_ptr<HashSetNode>* table_find(Table &table, string_view _data);
+	friend struct std::formatter<Table>;
+	friend struct std::formatter<HashSet>;
 };
 using Set = HashSet;
 
@@ -134,4 +136,65 @@ struct NodeDummy {
 
 } // namespace redbrouk
 
+static inline bool PRINTING_HS = false;
+MAKE_FORMATTER(redbrouk::HashSet::Table, {
+	string buckets;
+
+if(type.size == 0)
+	buckets = "EMPTY";
+else
+	buckets = [&] {
+		std::string b_string;
+
+		for(int i = 0; i <= type.nbuckets; i++) {
+			if(PRINTING_HS)
+				b_string.append(std::format("\t\[{}]: ", i));
+			else
+				b_string.append(std::format("\t[{}]: ", i));
+			unique_ptr<redbrouk::HashSetNode> *bucket = &type.buckets[i];
+
+			while( auto &elt = *bucket ) {
+				b_string.append(std::format("{}, ", elt->key));
+				bucket = &(*bucket)->next;
+			}
+
+			b_string.pop_back();
+			b_string.back() = '\n';
+		}
+
+		return b_string;
+	}();
+
+if(PRINTING_HS)
+	str.assign(std::format(
+		"\tSize: {}\n"
+		"\tMask: {}\n"
+		"\tNBuckets: {}\n"
+		"\tBuckets:\n{}",
+		type.size, type.mask, type.nbuckets + 1, buckets
+	));
+
+else
+	str.assign(std::format(
+		"Size: {}\n"
+		"Mask: {}\n"
+		"NBuckets: {}\n"
+		"Buckets: \n{}",
+		type.size, type.mask, type.nbuckets + 1, buckets
+	));
+})
+
+MAKE_FORMATTER(redbrouk::HashSet, {
+	const size_t size = type.curr.size + type.prev.size;
+	const size_t mpos = type.migrate_pos;
+	PRINTING_HS = true;
+
+	str.assign(std::format(
+		"Size: {}\n"
+		"Migration Position: {}\n"
+		"Current Table: \n{}\n"
+		"Previous Table: \n{}",
+		size, mpos, type.curr, type.prev
+	));
+})
 #endif
