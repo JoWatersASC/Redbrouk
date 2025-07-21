@@ -170,10 +170,9 @@ else
 					b_string.append(std::format("{}, ", elt->key));
 				bucket = &(*bucket)->next;
 			}
-
-			b_string.pop_back();
-			b_string.back() = '\n';
 		}
+		b_string.pop_back();
+		b_string.back() = '\n';
 
 		return b_string;
 	}();
