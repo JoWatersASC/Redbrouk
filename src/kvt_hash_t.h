@@ -94,7 +94,7 @@ private:
 			return node;
 		}
 		void take(Table& table, unique_ptr<HashSetNode> &node) {
-			insert(table.del(node).get());
+			insert(table.del(node).release());
 		}
 
 	} curr, prev;
