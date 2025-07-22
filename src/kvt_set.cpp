@@ -2,18 +2,26 @@
 
 namespace redbrouk {
 
+size_t HashSet::max_load = 1;
+size_t HashSet::rehash_work = 128;
+
 HashSet::HashSet() {
 	curr.buckets = std::make_unique<unique_ptr<HashSetNode>[]>(8);
 	curr.mask = 7;
 }
 void HashSet::insert(HashSetNode *node) {
-	const size_t pos = node->hash_val & curr.mask;
+	curr.insert(node);
 
-	node->next.reset(node);
-	curr.buckets[pos].swap(node->next);
-	curr.size++;
+	if(!prev.buckets) {
+		const size_t new_nbuckets = (curr.nbuckets + 1) * max_load;
+		if(curr.size >= new_nbuckets) {
+			migrate();
+		}
+	}
+
+	progress_rehash();
 }
-void HashSet::insert(std::string _data) {
+void HashSet::emplace(std::string _data) {
 	if(find(_data))
 		return;
 
@@ -22,6 +30,7 @@ void HashSet::insert(std::string _data) {
 }
 
 HashSetNode* HashSet::find(string_view _data) {
+	progress_rehash();
 	if( unique_ptr<HashSetNode> *match = table_find(curr, _data) )
 		return match->get();
 
@@ -32,32 +41,69 @@ HashSetNode* HashSet::find(string_view _data) {
 }
 
 unique_ptr<HashSetNode> HashSet::del(string_view _data) {
-	auto table_del = [&] (Table &table, unique_ptr<HashSetNode> *target) {
-		unique_ptr<HashSetNode> node = std::move(*target);
-		target->swap(node->next);
-		table.size--;
-
-		return node;
-	};
-
-	if( unique_ptr<HashSetNode> *match = table_find(curr, _data) ) {
-		return table_del(curr, match);
+	progress_rehash();
+	if( unique_ptr<HashSetNode> &match = *table_find(curr, _data) ) {
+		return curr.del(match);
 	}
-	if( unique_ptr<HashSetNode> *match = table_find(prev, _data) ) {
-		return table_del(prev, match);
+	if( unique_ptr<HashSetNode> &match = *table_find(prev, _data) ) {
+		return prev.del(match);
 	}
 
 	return nullptr;
 }
 
 void HashSet::rehash() {
+	const size_t curr_nbuckets = (curr.nbuckets + 1);
+	const size_t new_cap = ( size() > (curr_nbuckets * max_load) ) ? curr_nbuckets * 2 : curr_nbuckets;
+
+	Table new_table = {
+		.buckets = std::make_unique< unique_ptr<HashSetNode>[] >(new_cap),
+		.size = 0,
+		.mask = new_cap - 1
+	};
+
+	size_t pos = 0;
+	while(prev.size > 0) {
+		unique_ptr<HashSetNode> &node = prev.buckets[pos];
+		if(!node) {
+			pos++;
+			continue;
+		}
+
+		new_table.take(prev, node);
+	}
+
+	pos = 0;
+	while(curr.size > 0) {
+		unique_ptr<HashSetNode> &node = curr.buckets[pos];
+		if(!node) {
+			pos++;
+			continue;
+		}
+
+		new_table.take(curr, node);
+	}
+
+	curr = std::move(new_table);
 }
-void HashSet::migrate() {
+inline void HashSet::migrate() {
 	prev = std::move(curr);
 	curr.buckets = std::make_unique<unique_ptr<HashSetNode>[]>((curr.nbuckets + 1) * 2);
 	migrate_pos = 0;
 }
 void HashSet::progress_rehash() {
+	size_t work_done = 0;
+
+	while(work_done < rehash_work && prev.size > 0) {
+		unique_ptr<HashSetNode> &node = prev.buckets[migrate_pos];
+		if(!node) {
+			migrate_pos++;
+			continue;
+		}
+
+		curr.take(prev, node);
+		work_done++;
+	}
 }
 
 unique_ptr<HashSetNode>* HashSet::table_find(Table &table, string_view _data) {
