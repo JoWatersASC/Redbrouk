@@ -59,31 +59,52 @@ struct HashMapNode {
 class HashSet : Valtype {
 public:
 	HashSet();
-	void insert(std::string _data);
+
+	void emplace(std::string _data);
 	void insert(HashSetNode *node);
-	HashSetNode* find(string_view _data);
 	unique_ptr<HashSetNode> del(string_view _data);
+	HashSetNode* find(string_view _data);
+
+	[[nodiscard]] const size_t size() const { return curr.size + prev.size; }
 	void rehash();
 
 private:
 	size_t migrate_pos = 0;
 	struct Table {
-		unique_ptr<
-			unique_ptr<HashSetNode>[]
-		>buckets;
+		unique_ptr< unique_ptr<HashSetNode>[] > buckets;
+		size_t size = 0;
 
 		union {
 			size_t mask = 0;
 			size_t nbuckets;
 		};
 
-		size_t size = 0;
+		void insert(HashSetNode *node) {
+			const size_t pos = node->hash_val & mask;
+
+			node->next.reset(node);
+			buckets[pos].swap(node->next);
+			size++;
+		}
+		unique_ptr<HashSetNode> del(unique_ptr<HashSetNode> &target) {
+			unique_ptr<HashSetNode> node = std::move(target);
+			target.swap(node->next);
+			size--;
+
+			return node;
+		}
+		void take(Table& table, unique_ptr<HashSetNode> &node) {
+			insert(table.del(node).get());
+		}
+
 	} curr, prev;
 
-	void migrate();
+	inline void migrate();
 	void progress_rehash();
-
 	unique_ptr<HashSetNode>* table_find(Table &table, string_view _data);
+
+	static size_t max_load;
+	static size_t rehash_work;
 
 	friend class HashMap;
 	friend struct std::formatter<Table>;
@@ -123,6 +144,9 @@ private:
 
 	std::vector<HashMapNode> m_data;
 	HashSet m_set;
+
+	static size_t max_load;
+	static size_t rehash_work;
 
 	friend struct std::formatter<HashSet::Table>;
 	friend struct std::formatter<HashMap>;
