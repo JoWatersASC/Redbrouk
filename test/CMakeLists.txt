@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.22)
 
 enable_testing()
 
@@ -20,6 +20,13 @@ set(TEST_CTX "ValType-")
 set(TEST_TGT "TSet")
 set(TEST_NAME "${TEST_CTX}-${TEST_TGT}" CACHE STRING "Full test name" FORCE)
 add_executable(${TEST_NAME} ./tset_test.cc)
+target_include_directories(${TEST_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src")
+target_link_libraries(${TEST_NAME} PRIVATE Redbrouk-core)
+
+set(TEST_CTX "ValType-")
+set(TEST_TGT "Set")
+set(TEST_NAME "${TEST_CTX}-${TEST_TGT}" CACHE STRING "Full test name" FORCE)
+add_executable(${TEST_NAME} ./set_test.cc)
 target_include_directories(${TEST_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src")
 target_link_libraries(${TEST_NAME} PRIVATE Redbrouk-core)
 
