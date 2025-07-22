@@ -12,7 +12,7 @@ HashSet::HashSet() {
 void HashSet::insert(HashSetNode *node) {
 	curr.insert(node);
 
-	if(!prev.buckets) {
+	if(prev.size == 0) {
 		const size_t new_nbuckets = (curr.nbuckets + 1) * max_load;
 		if(curr.size >= new_nbuckets) {
 			migrate();
@@ -88,7 +88,12 @@ void HashSet::rehash() {
 }
 inline void HashSet::migrate() {
 	prev = std::move(curr);
-	curr.buckets = std::make_unique<unique_ptr<HashSetNode>[]>((curr.nbuckets + 1) * 2);
+
+	const size_t new_nbuckets = (curr.nbuckets + 1) * 2;
+	curr.buckets = std::make_unique<unique_ptr<HashSetNode>[]>(new_nbuckets);
+	curr.mask = new_nbuckets - 1;
+	curr.size = 0;
+
 	migrate_pos = 0;
 }
 void HashSet::progress_rehash() {
