@@ -57,6 +57,8 @@ void tmigrate(iHSet *hs) {
 }
 
 iHNode *ihs_find(const iHSet *hs, const iHNode *key, bfunc<const iHNode*, const iHNode*> eq) {
+	ihs_prehash(const_cast<iHSet *>(hs));
+
 	iHNode **match = iht_get(&hs->curr, key, eq);
 	if(!match)
 		match = iht_get(&hs->prev, key, eq);
@@ -66,6 +68,7 @@ iHNode *ihs_find(const iHSet *hs, const iHNode *key, bfunc<const iHNode*, const 
 iHNode *ihs_del(iHSet *hs, iHNode *key, bfunc<const iHNode*, const iHNode*> eq) {
 	iHNode **match;
 
+	ihs_prehash(hs);
 	if( (match = iht_get(&hs->curr, key, eq)) ) {
 		return iht_del(&hs->curr, match);
 	}
@@ -87,6 +90,8 @@ void ihs_insert(iHSet *hs, iHNode *node) {
 			tmigrate(hs);
 		}
 	}
+
+	ihs_prehash(hs);
 }
 
 void ihs_prehash(iHSet *hs) { // specifies when rehashing ends
