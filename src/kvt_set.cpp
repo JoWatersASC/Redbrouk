@@ -137,17 +137,11 @@ HashSetNode* HashSet::table_find(Table &table, string_view _data) {
 void HashSet::destroy_table(Table &table) {
 	unique_ptr<Bucket[]> &buckets = table.buckets;
 
-	for(int i = 0; i < table.size; i++) {
-		HashSetNode **bucket = buckets.get() + i;
-		HashSetNode  *next_node;
-		
-		while(bucket) {
-			next_node = (*bucket)->next;
-			delete *bucket;
-			*bucket = next_node;
+	for(int i = 0; i < table.nbuckets + 1 && table.size > 0; i++) {
+		while( auto bucket = table.del(table.buckets[i]) ) {
+			delete bucket;
 		}
 	}
-	table.size = 0;
 }
 
 } // namespace redbrouk

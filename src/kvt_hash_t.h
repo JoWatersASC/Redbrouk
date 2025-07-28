@@ -44,6 +44,9 @@ struct HashSetNode {
 class HashSet : Valtype {
 public:
 	HashSet();
+	HashSet(const HashSet &other) = delete;
+	HashSet& operator=(const HashSet &other) = delete;
+	~HashSet() { destroy(*this); }
 
 	void emplace(std::string _data);
 	void insert(HashSetNode *node);
@@ -55,6 +58,11 @@ public:
 	void detach() {
 		curr.buckets.release();
 		prev.buckets.release();
+
+		curr.size = 0;
+		prev.size = 0;
+
+		migrate_pos = 0;
 	}
 
 	static void destroy(HashSet &set);
@@ -84,6 +92,9 @@ private:
 			size++;
 		}
 		HashSetNode *del(HashSetNode *&target) {
+			if(!target)
+				return nullptr;
+
 			HashSetNode *node = target;
 			target = target->next;
 			size--;
