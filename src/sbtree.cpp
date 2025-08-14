@@ -1,7 +1,4 @@
-#include <print>
 #include "sbtree.h"
-#include "src/io.h"
-#include "src/utils.h"
 
 namespace redbrouk
 {
@@ -133,14 +130,14 @@ SBTNode** sbt_search(SBTNode **root, double _key) {
 		return nullptr;
 
 	SBTNode *node;
-	while((node = *root) && node->key != _key) {
+	while(!IS_NULL(node = *root) && node->key != _key) {
 		if(node->key < _key)
 			root = &node->right;
 		else
 			root = &node->left;
 	}
 
-	return root;
+	return !IS_NULL(*root) ? root : nullptr;
 }
 
 SBTNode** sbt_insert(SBTNode **root, SBTNode *in_node) {
@@ -195,6 +192,27 @@ SBTNode* sbt_detach(SBTNode *root) {
 
 	return X;
 }
+
+void sbt_replace(SBTNode *oldn, SBTNode *newn) {
+	if(IS_NULL(oldn) || IS_NULL(newn) || oldn->key != newn->key)
+		throw;
+
+	bool has_left   = !IS_NULL(oldn->left);
+	bool has_right  = !IS_NULL(oldn->right);
+
+	transplant(oldn, newn);
+
+	newn->left = oldn->left;
+	if( has_left )
+		newn->left->parent = newn;
+
+	newn->right = oldn->right;
+	if( has_right )
+		newn->right->parent = newn;
+
+	newn->color = oldn->color;
+}
+
 SBTNode* sbt_at(SBTNode *root, ssize_t offset) {
 	size_t idx = 0;
 	return sbt_at(root, offset, idx);
@@ -215,7 +233,7 @@ SBTNode* sbt_at(SBTNode *root, ssize_t offset, size_t &index) {
 	return right;
 }
 
-static SBTNode* sbt_walk_forw(SBTNode* node) {
+SBTNode* sbt_walk_forw(SBTNode* node) {
     if(IS_NULL(node))
         return nullptr;
 
@@ -234,7 +252,7 @@ static SBTNode* sbt_walk_forw(SBTNode* node) {
 
     return p;
 }
-static SBTNode* sbt_walk_back(SBTNode* node) {
+SBTNode* sbt_walk_back(SBTNode* node) {
     if(IS_NULL(node))
         return nullptr;
 
@@ -257,15 +275,15 @@ static SBTNode* sbt_walk_back(SBTNode* node) {
 SBTNode* sbt_walk(SBTNode *root, ssize_t offset) {
 	SBTNode *out = root;
 
+	RBTNode* (*walk_func) (RBTNode *) = &sbt_walk_forw;
+	// std::function<RBTNode* (RBTNode *)> walk_func = sbt_walk_forw;
 	if(offset < 0) {
 		offset = ~offset;
-
-		while(offset-- > 0)
-			out = sbt_walk_back(out);
-	} else {
-		while(offset-- > 0)
-			out = sbt_walk_forw(out);
+		walk_func = &sbt_walk_back;
 	}
+
+	while(offset-- > 0)
+		out = walk_func(out);
 
 	return out;
 }
@@ -346,17 +364,17 @@ void rbt_delete(RBTNode **root, RBTNode *del_node) {
 
 	NILNODE.parent = Y;
 	if(IS_NULL(del_node->left) && IS_NULL(del_node->right)) {
-		X = del_node->right;
+		Y = X = del_node->right;
 		transplant(del_node, del_node->right);
 	}
 	else if(IS_NULL(del_node->right)) {
-		X = del_node->left;
+		Y = X = del_node->left;
 		transplant(del_node, del_node->left);
 		was_black = is_black(X);
 		X->color = del_node->color;
 	}
 	else if(IS_NULL(del_node->left)) {
-		X = del_node->right;
+		Y = X = del_node->right;
 		transplant(del_node, del_node->right);
 		was_black = is_black(X);
 		X->color = del_node->color;
@@ -383,6 +401,8 @@ void rbt_delete(RBTNode **root, RBTNode *del_node) {
 
 	if( was_black )
 		rbt_del_fix(*root, X);
+	else if( del_node_isroot )
+		*root = Y;
 }
 
 void rbt_del_fix(RBTNode *&root, RBTNode *node) {
