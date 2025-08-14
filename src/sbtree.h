@@ -55,10 +55,11 @@ inline bool IS_NULL(SBTNode *N) { return !N || N == &NILNODE; }
 
 SBTNode** sbt_search(SBTNode **root, double _key);
 SBTNode** sbt_insert(SBTNode **root, SBTNode *in_node);
-SBTNode*  sbt_detach(SBTNode	*root);
+SBTNode*  sbt_detach(SBTNode  *root);
 SBTNode*  sbt_at(SBTNode *root, ssize_t offset);
 SBTNode*  sbt_at(SBTNode *root, ssize_t offset, size_t &index); 
 SBTNode*  sbt_walk(SBTNode *root, ssize_t offset);
+void      sbt_replace(SBTNode *oldn, SBTNode *newn);
 
 inline SBTNode* sbt_min(SBTNode *root) {
 	while(root->left)
