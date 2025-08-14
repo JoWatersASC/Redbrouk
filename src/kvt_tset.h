@@ -16,6 +16,8 @@ namespace redbrouk
 typedef struct tst_node {
 	iHNode mpnode;
 	RBTNode tnode;
+
+	tst_node *next = nullptr;
 	std::string name;
 } TSTNode;
 
@@ -40,6 +42,7 @@ bool ts_update(TSet *tst, TSTNode *node, double _score);
 TSTNode *ts_find(TSet *tst, std::string_view _name); // Find a node in a tset by name
 TSTNode *ts_seek(TSet *tst, double _score); // Find a node in a tset by score or closest score > '_score'
 TSTNode *ts_at(TSet *tst, ssize_t offset); // Find a node by offset in order
+TSTNode *ts_walk(TSTNode *n, ssize_t offset, TSTNode *head = nullptr);
 
 static TSTNode *mk_tstn(std::string &_name, double _score, TSTNode *place = nullptr) {
 	TSTNode *out;
