@@ -60,7 +60,7 @@ static int32_t send_req(int fd, const std::vector<std::string> &cmd) {
 		return -1;
 	}
 
-	char wbuf[4 + k_max_msg];
+	char wbuf[4 + k_max_msg] = {0};
 	memcpy(&wbuf[0], &len, 4);  // assume little endian
 	uint32_t n = cmd.size();
 	memcpy(&wbuf[4], &n, 4);
@@ -128,21 +128,27 @@ int main(int argc, char **argv) {
 		die("connect");
 	}
 
-	/*std::vector<std::string> cmd;
-	for (int i = 1; i < argc; ++i) {
-		cmd.push_back(argv[i]);
+	if(argc > 1) {
+		std::vector<std::string> cmd;
+		for (int i = 1; i < argc; ++i) {
+			cmd.push_back(argv[i]);
+		}
+		int32_t err = send_req(fd, cmd);
+		if (err) {
+			close(fd);
+			return 1;
+		}
+		err = read_res(fd);
+
+		return 0;
 	}
-	int32_t err = send_req(fd, cmd);
-	if (err) {
-		goto L_DONE;
-	}
-	err = read_res(fd);*/
 
 	int32_t err, nargs;
 	std::string c;
 	std::vector<std::string> cmd[4];
 
 	for(int i = 0; i < 4; i++) {
+		std::println("Enter your # of arguments");
 		std::cin >> nargs;
 		std::println("Enter your {} arguments", nargs);
 
