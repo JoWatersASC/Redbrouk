@@ -121,7 +121,7 @@ void io_context::main_loop() {
 }
 
 static void handle_read(Conn *conn) {
-	std::byte buf[64 * 1024];
+	static std::byte buf[64 * 1024];
 	ssize_t rv = conn->recv(buf, sizeof(buf));
 
 	if (rv < 0 && errno == EAGAIN)
