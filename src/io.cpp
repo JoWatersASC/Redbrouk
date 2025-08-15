@@ -1,3 +1,4 @@
+#include <charconv>
 #include <cstdlib>
 #include <memory>
 #include <signal.h>
@@ -424,9 +425,10 @@ void do_range_tset(vector<sview> &cmds, Response &out) {
 	}
 	res.clear();
 
-	ssize_t begin = atoi((const char *)cmds[2].data()),
-	        end   = atoi((const char *)cmds[3].data()),
-	        tsize = ts_size(tset);
+	ssize_t begin, end, tsize = ts_size(tset);
+	std::from_chars(cmds[2].data(), cmds[2].data() + cmds[2].size(), begin);
+	std::from_chars(cmds[3].data(), cmds[3].data() + cmds[3].size(), end);
+
 	if(end < 0)
 		end = tsize + end;
 	if(end >= tsize || end < 0) {
@@ -438,9 +440,11 @@ void do_range_tset(vector<sview> &cmds, Response &out) {
 
 	res.append("[TRANGE] " + std::to_string(end - begin + 1) + "\n");
 	TSTNode *node = ts_at(tset, begin);
+
+	TSTNode *first = node; // to keep track of the first node in the same value list
 	for(int i = begin; i <= end && node; i++) {
 		res.append( fmt("{}) {}\n", i - begin, node->name) );
-		node = utils::container_of(sbt_walk(&node->tnode, 1), &TSTNode::tnode);
+		node = ts_walk(node, 1, first);
 	}
 	out.data.assign(res.begin(), res.end());
 	out.status = RES_OK;
